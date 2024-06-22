@@ -1,0 +1,18 @@
+import React from "react";
+import { Bar } from "react-chartjs-2";
+import { Chart as ChartJS } from "chart.js/auto";
+
+function BarChart({ chartData }) {
+  const options = {
+    indexAxis: "y", // Set the index axis to be vertical (y-axis).
+    scales: {
+      x: {
+        beginAtZero: true, // Start the x-axis at 0.
+      },
+    },
+  };
+
+  return <Bar data={chartData} options={options} />;
+}
+
+export default BarChart;
