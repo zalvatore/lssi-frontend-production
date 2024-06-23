@@ -1,0 +1,29 @@
+/* styles.css */
+.sticky-section {
+    position: sticky;
+    top: 90px;
+    background-color: white;
+    padding: 10px;
+    z-index: 1;
+  }
+  
+  /* Media query for smaller screens (e.g., mobile devices) */
+  @media (max-width: 768px) {
+    .sticky-section {
+        position: sticky;
+        top: 110px;
+        background-color: white;
+        padding: 10px;
+        z-index: 1;
+    }
+  }
+
+  .sticky-header {
+    position: sticky;
+    top: 90px; /* Adjust this value based on your header's desired distance from the top of the viewport */
+    background-color: white; /* Ensures the text is readable against underlying content */
+    z-index: 1000; /* Higher index ensures the header is above other content */
+    padding: 10px 0; /* Optional: Adds padding to the header */
+    /*box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Optional: Adds subtle shadow for better separation */
+  }
+  
