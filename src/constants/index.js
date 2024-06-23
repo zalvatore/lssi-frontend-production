@@ -1,4 +1,3 @@
-//const BASE_URL = "https://prod.lssiapp.com";
 const BASE_URL = "https://app-lssi-backend-c5a053ec63da.herokuapp.com";
 
 export const API_URL = `${BASE_URL}/api/clients/`;

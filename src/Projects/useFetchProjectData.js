@@ -23,12 +23,12 @@ const useFetchProjectData = (projectNumber) => {
           utilidadAbiertaResponse,
           comisionMultiResponse,
         ] = await Promise.all([
-          fetch(`https://prod.lssiapp.com/api/instructores_list/?proyecto_code=${projectNumber}`),
-          fetch(`https://prod.lssiapp.com/api/estudiantes_list/?proyecto_code=${projectNumber}`),
-          fetch(`https://prod.lssiapp.com/api/partidas_list/?proyecto_code=${projectNumber}`),
-          fetch(`https://prod.lssiapp.com/api/proyecto_list/?proyecto_code=${projectNumber}`),
-          fetch(`https://prod.lssiapp.com/api/utilidad-partner-curso-abierto/filter/?proyecto_code=${projectNumber}`),
-          fetch(`https://prod.lssiapp.com/api/comision_multi_list/?proyecto_code=${projectNumber}`),
+          fetch(`https://app-lssi-backend-c5a053ec63da.herokuapp.com/api/instructores_list/?proyecto_code=${projectNumber}`),
+          fetch(`https://app-lssi-backend-c5a053ec63da.herokuapp.com/api/estudiantes_list/?proyecto_code=${projectNumber}`),
+          fetch(`https://app-lssi-backend-c5a053ec63da.herokuapp.com/api/partidas_list/?proyecto_code=${projectNumber}`),
+          fetch(`https://app-lssi-backend-c5a053ec63da.herokuapp.com/api/proyecto_list/?proyecto_code=${projectNumber}`),
+          fetch(`https://app-lssi-backend-c5a053ec63da.herokuapp.com/api/utilidad-partner-curso-abierto/filter/?proyecto_code=${projectNumber}`),
+          fetch(`https://app-lssi-backend-c5a053ec63da.herokuapp.com/api/comision_multi_list/?proyecto_code=${projectNumber}`),
         ]);
 
         const [

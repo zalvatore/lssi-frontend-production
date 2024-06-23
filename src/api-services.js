@@ -10,7 +10,7 @@ import {
 
 export class API {
     static loginUser(body) {
-      return fetch(`https://prod.lssiapp.com/auth/`, {
+      return fetch(`https://app-lssi-backend-c5a053ec63da.herokuapp.com/auth/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
