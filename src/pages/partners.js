@@ -39,7 +39,7 @@ class Partners extends Component {
   };
 
   downloadCSV = () => {
-    const { partners } = this.state; // Access the partners from state
+    const { partners } = this.state; 
     const csvHeader = "Codigo de Miembro, Miembro, Nivel, Correo de Miembro, Value Stream, Localizacion, IVA, Retencion IVA, Retencion ISR/IRPF, Fecha de Ingreso, Fecha de Cumpleaños, Fecha de Registro\n";
     const csvRows = partners.map(partner =>
       [
@@ -152,7 +152,6 @@ handleFileChange = (event) => {
           <div>
           <input type="file" accept=".csv" onChange={this.handleFileChange} />
           <button onClick={this.handleFileUpload}>Upload CSV</button>
-          {/* Other components */}
         </div>  
         </Col>  
         </Row>

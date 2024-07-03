@@ -1,8 +1,14 @@
 import React, { Component } from "react";
-import { Table, Input, FormGroup, Label, Col, Row } from "reactstrap";
-import Moment from 'moment';
-import CursoAbiertoModal from "./CursoAbiertoModal";
-import CursoAbiertoRemovalModal from "./CursoAbiertoRemovalModal";
+import FilterForm from "./FilterForm";
+import EstudiantesTable from "./EstudiantesTable";
+import ComisionSummary from "./ComisionSummary";
+import { calculateComision, calculateCostoAdmin, calculateTotalPrecios } from "./calculations";
+import { toast } from "react-toastify";
+import { Col, Row, Button } from "reactstrap";
+import Cookies from "js-cookie";
+import Papa from 'papaparse';
+import axios from "axios";
+import { API_URL_estudiantes_list } from "../../../constants";
 
 class CursoAbiertoList extends Component {
     constructor(props) {
@@ -22,95 +28,44 @@ class CursoAbiertoList extends Component {
         };
     }
 
-    handleAdminCostChange = (event) => {
-        const newAdminCostPercentage = parseFloat(event.target.value) || 0;
-        this.setState({ adminCostPercentage: newAdminCostPercentage }, () => {
-            this.calculateTotalPrecios();
-            this.calculateComision();
-            this.calculateCostoAdmin();
-        });
-    };
-
     componentDidMount() {
-        this.calculateTotalPrecios();
-        this.calculateComision();
-        this.calculateCostoAdmin();
+        this.calculateTotals();
     }
 
     componentDidUpdate(prevProps) {
         if (prevProps.estudiantes_curso_abierto !== this.props.estudiantes_curso_abierto) {
-            this.calculateTotalPrecios();
-            this.calculateComision();
-            this.calculateCostoAdmin();
+            this.calculateTotals();
         }
     }
 
+    calculateTotals = () => {
+        this.calculateTotalPrecios();
+        this.calculateComision();
+        this.calculateCostoAdmin();
+    };
+
+    handleAdminCostChange = (event) => {
+        const newAdminCostPercentage = parseFloat(event.target.value) || 0;
+        this.setState({ adminCostPercentage: newAdminCostPercentage }, this.calculateTotals);
+    };
+
     calculateComision = () => {
         const { estudiantes_curso_abierto } = this.props;
-        if (estudiantes_curso_abierto && Array.isArray(estudiantes_curso_abierto)) {
-            const totalComisionByVendedor = {};
-            let totalComisionAllVendedores = 0;
-
-            estudiantes_curso_abierto.forEach(estudiante => {
-                const { miembro_vendedor, comision_vendedor, precio, moneda } = estudiante;
-                if (miembro_vendedor && comision_vendedor !== null && precio !== null && moneda) {
-                    if (!totalComisionByVendedor[miembro_vendedor]) {
-                        totalComisionByVendedor[miembro_vendedor] = {
-                            totalPrecio: 0,
-                            totalComision: 0,
-                            moneda: moneda
-                        };
-                    }
-                    totalComisionByVendedor[miembro_vendedor].totalPrecio += precio;
-                    totalComisionByVendedor[miembro_vendedor].totalComision += (precio * comision_vendedor / 100);
-                }
-            });
-            totalComisionAllVendedores = Object.values(totalComisionByVendedor).reduce((acc, vendor) => acc + vendor.totalComision, 0);
-
-            this.setState({ totalComisionByVendedor, totalComisionAllVendedores });
-        }
+        const { totalComisionByVendedor, totalComisionAllVendedores } = calculateComision(estudiantes_curso_abierto);
+        this.setState({ totalComisionByVendedor, totalComisionAllVendedores });
     };
 
     calculateCostoAdmin = () => {
         const { estudiantes_curso_abierto } = this.props;
         const { adminCostPercentage } = this.state;
-        if (estudiantes_curso_abierto && Array.isArray(estudiantes_curso_abierto)) {
-            const totalCostoAdminPorPartner = {};
-            let totalCostoAdmin = 0;
-
-            estudiantes_curso_abierto.forEach(estudiante => {
-                const { partner_vendedor, precio, moneda } = estudiante;
-                if (partner_vendedor && precio !== null && moneda) {
-                    if (!totalCostoAdminPorPartner[partner_vendedor]) {
-                        totalCostoAdminPorPartner[partner_vendedor] = {
-                            totalCosto: 0,
-                            moneda: moneda
-                        };
-                    }
-                    totalCostoAdminPorPartner[partner_vendedor].totalCosto += precio * adminCostPercentage;
-                }
-            });
-            totalCostoAdmin = Object.values(totalCostoAdminPorPartner).reduce((acc, vendor) => acc + vendor.totalCosto, 0);
-
-            this.setState({ totalCostoAdminPorPartner, totalCostoAdmin });
-        }
+        const { totalCostoAdminPorPartner, totalCostoAdmin } = calculateCostoAdmin(estudiantes_curso_abierto, adminCostPercentage);
+        this.setState({ totalCostoAdminPorPartner, totalCostoAdmin });
     };
 
     calculateTotalPrecios = () => {
         const { estudiantes_curso_abierto } = this.props;
-        if (estudiantes_curso_abierto && Array.isArray(estudiantes_curso_abierto)) {
-            const totalPrecioByVendedor = {};
-            let totalPrecioAllVendedores = 0;
-
-            estudiantes_curso_abierto.forEach(estudiante => {
-                const { miembro_vendedor, precio } = estudiante;
-                if (miembro_vendedor && precio !== null) {
-                    totalPrecioByVendedor[miembro_vendedor] = (totalPrecioByVendedor[miembro_vendedor] || 0) + precio;
-                }
-            });
-            totalPrecioAllVendedores = Object.values(totalPrecioByVendedor).reduce((acc, precio) => acc + (precio || 0), 0);
-            this.setState({ totalPrecioByVendedor, totalPrecioAllVendedores });
-        }
+        const { totalPrecioByVendedor, totalPrecioAllVendedores } = calculateTotalPrecios(estudiantes_curso_abierto);
+        this.setState({ totalPrecioByVendedor, totalPrecioAllVendedores });
     };
 
     handleFilterChange = (e) => {
@@ -119,13 +74,11 @@ class CursoAbiertoList extends Component {
 
     filterEstudiantes = (estudiantes) => {
         const { filterNombre, filterPartner, filterVendedor } = this.state;
-        return estudiantes.filter(estudiante => {
-            return (
-                estudiante.nombre?.toLowerCase().includes(filterNombre.toLowerCase()) &&
-                estudiante.partner_vendedor?.toLowerCase().includes(filterPartner.toLowerCase()) &&
-                estudiante.miembro_vendedor?.toLowerCase().includes(filterVendedor.toLowerCase())
-            );
-        });
+        return estudiantes.filter(estudiante => (
+            estudiante.nombre?.toLowerCase().includes(filterNombre.toLowerCase()) &&
+            estudiante.partner_vendedor?.toLowerCase().includes(filterPartner.toLowerCase()) &&
+            estudiante.miembro_vendedor?.toLowerCase().includes(filterVendedor.toLowerCase())
+        ));
     };
 
     formatCurrency = (value) => {
@@ -134,6 +87,104 @@ class CursoAbiertoList extends Component {
 
     calculateTotalPrecioFiltered = (filteredEstudiantes) => {
         return filteredEstudiantes.reduce((acc, estudiante) => acc + (estudiante.precio || 0), 0);
+    };
+
+    downloadCSV = () => {
+        const { estudiantes_curso_abierto } = this.props
+        console.log(estudiantes_curso_abierto);
+        const csvHeader = "Proyecto Code, Nombre, Miembro Vendedor, Partner Vendedor, Comision Vendedor, Correo, Telefono, Precio, Moneda";
+
+        const csvRows = estudiantes_curso_abierto.map(estudiante =>
+          [
+            estudiante.proyecto_code,
+            estudiante.nombre,
+            estudiante.miembro_vendedor,
+            estudiante.partner_vendedor,
+            estudiante.comision_vendedor,
+            estudiante.correo,
+            estudiante.telefono,
+            estudiante.precio,
+            estudiante.moneda,
+          ].join(',')
+        );
+    
+        const csvData = [csvHeader, ...csvRows].join('\n');
+        const blob = new Blob([csvData], { type: 'text/csv;charset=utf-16le;' });
+        const url = URL.createObjectURL(blob);
+    
+        const today = new Date();
+        const dateStr = today.toISOString().slice(0, 10); // Format YYYY-MM-DD
+    
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `Estudiantes_${dateStr}.csv`); // Appends today's date to the filename
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    
+    handleFileUpload = () => {
+      const { file } = this.state;
+      if (!file) {
+          alert('No file selected!');
+          return;
+      }
+    
+      const reader = new FileReader();
+    
+      // Called when the file reading has completed successfully
+      reader.onload = (event) => {
+          Papa.parse(event.target.result, {
+              header: true,
+              skipEmptyLines: true,
+              complete: this.updateDatabase
+          });
+      };
+    
+      // Called if there is an error reading the file (e.g., file is not accessible, or reading is interrupted)
+      reader.onerror = (event) => {
+          console.error('Error reading file:', reader.error);
+          alert('Failed to read the file. Please try again or check if the file is corrupted.');
+          toast.error("Failed to read the file. Please try again or check if the file is corrupted.");
+      };
+    
+      // Called if the reading operation is aborted (e.g., through calling reader.abort())
+      reader.onabort = (event) => {
+          console.warn('File reading was aborted.');
+          alert('File reading was aborted by the user or the browser.');
+          toast.error("File reading was aborted by the user or the browser.");
+      };
+    
+      // Start reading the file as Text
+      reader.readAsText(file);
+    };
+    
+    
+    updateDatabase = async (result) => {
+      const data = result.data.map(item => ({
+          ...item,
+          grupo: item.grupo || 'Default Value'  // Ensure 'grupo' is not empty, provide a default if necessary
+      }));
+      const token = Cookies.get("token");
+      const headers = { Authorization: `Token ${token}` };
+      try {
+          for (const entry of data) {
+              await axios.post(API_URL_estudiantes_list, entry, { headers });
+              toast.success("Data has been updated successfully.");
+          }
+          this.resetState(); // Refresh the data in your application if necessary
+      } catch (error) {
+          toast.error("Failed to update database. Please try again.");
+          console.error('Error updating database:', error.response.data.partner[0]
+        );
+    
+          
+      }
+    };
+    
+    
+    handleFileChange = (event) => {
+      this.setState({ file: event.target.files[0] });
     };
 
     render() {
@@ -153,44 +204,25 @@ class CursoAbiertoList extends Component {
 
         return (
             <div>
-                <Row form>
-                    <Col md={4}>
-                        <FormGroup>
-                            <Label for="filterNombre">Filtro por estudiante:</Label>
-                            <Input
-                                type="text"
-                                name="filterNombre"
-                                id="filterNombre"
-                                value={filterNombre}
-                                onChange={this.handleFilterChange}
-                            />
-                        </FormGroup>
+                <br></br>
+                <Row>
+                    <Col>
+                    <Button style={{ backgroundColor: '#ADD8E6', color: 'black' }} onClick={this.downloadCSV}>Descarga Estudiantes a CSV</Button>
                     </Col>
-                    <Col md={4}>
-                        <FormGroup>
-                            <Label for="filterPartner">Filtro por Partner:</Label>
-                            <Input
-                                type="text"
-                                name="filterPartner"
-                                id="filterPartner"
-                                value={filterPartner}
-                                onChange={this.handleFilterChange}
-                            />
-                        </FormGroup>
-                    </Col>
-                    <Col md={4}>
-                        <FormGroup>
-                            <Label for="filterVendedor">Filtro por Vendedor:</Label>
-                            <Input
-                                type="text"
-                                name="filterVendedor"
-                                id="filterVendedor"
-                                value={filterVendedor}
-                                onChange={this.handleFilterChange}
-                            />
-                        </FormGroup>
-                    </Col>
+                    <Col>
+                    <div>
+                    <input type="file" accept=".csv" onChange={this.handleFileChange} />
+                    <button onClick={this.handleFileUpload}>Upload CSV</button>
+                </div>  
+                </Col>  
                 </Row>
+                <br></br>
+                <FilterForm
+                    filterNombre={filterNombre}
+                    filterPartner={filterPartner}
+                    filterVendedor={filterVendedor}
+                    handleFilterChange={this.handleFilterChange}
+                />
                 <div style={{ marginTop: "20px" }}>
                     <h4>Total comision de vendedores: {this.formatCurrency(totalComisionAllVendedores)}</h4>
                 </div>
@@ -198,82 +230,15 @@ class CursoAbiertoList extends Component {
                     <h4>Total precio filtrado: {this.formatCurrency(totalPrecioFiltered)}</h4>
                     <h4>Total estudiantes filtrados: {totalEstudiantesFiltered}</h4>
                 </div>
-                <Table responsive hover striped bordered>
-                    <thead>
-                        <tr className="table-danger">
-                            <th>Nombre</th>
-                            <th>Partner</th>
-                            <th>Vendedor</th>
-                            <th>Comision</th>
-                            <th>Correo</th>
-                            <th>Telefono</th>
-                            <th>Precio</th>
-                            <th>Moneda</th>
-                            <th>Referencia</th>
-                            <th>Fecha de Registro</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {!sortedEstudiantes || sortedEstudiantes.length <= 0 ? (
-                            <tr>
-                                <td colSpan="15" align="center">
-                                    <b>Ups, todavia no hay partidas!!</b>
-                                </td>
-                            </tr>
-                        ) : (
-                            sortedEstudiantes.map(estudiante => (
-                                <tr key={estudiante.pk}>
-                                    <td>{estudiante.nombre}</td>
-                                    <td>{estudiante.partner_vendedor}</td>
-                                    <td>{estudiante.miembro_vendedor}</td>
-                                    <td>{estudiante.comision_vendedor}%</td>
-                                    <td>{estudiante.correo}</td>
-                                    <td>{estudiante.telefono}</td>
-                                    <td>{this.formatCurrency(estudiante.precio)}</td>
-                                    <td>{estudiante.moneda}</td>
-                                    <td>{estudiante.referencia}</td>
-                                    <td>{Moment(estudiante.registration_date).format('MMM/DD/yy')}</td>
-                                    <td align="center">
-                                        <CursoAbiertoModal
-                                            create={false}
-                                            estudiante={estudiante}
-                                            resetState={this.props.resetState}
-                                        />
-                                        &nbsp;&nbsp;
-                                        <CursoAbiertoRemovalModal
-                                            pk={estudiante.pk}
-                                            resetState={this.props.resetState}
-                                        />
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </Table>
-                
-                <div>
-                    <Table responsive hover striped bordered>
-                        <thead>
-                            <tr className="table-danger">
-                                <th>Vendedor</th>
-                                <th>Comision</th>
-                                <th>Total Venta</th>
-                                <th>Moneda</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {totalComisionByVendedor && Object.entries(totalComisionByVendedor).map(([vendedor, comision]) => (
-                                <tr key={vendedor}>
-                                    <td>{vendedor}</td>
-                                    <td>$ {this.formatCurrency(comision.totalComision)}</td>
-                                    <td>$ {this.formatCurrency(comision.totalPrecio)}</td>
-                                    <td>{comision.moneda}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </Table>
-                </div>
+                <EstudiantesTable
+                    estudiantes={sortedEstudiantes}
+                    formatCurrency={this.formatCurrency}
+                    resetState={this.props.resetState}
+                />
+                <ComisionSummary
+                    totalComisionByVendedor={totalComisionByVendedor}
+                    formatCurrency={this.formatCurrency}
+                />
             </div>
         );
     }
