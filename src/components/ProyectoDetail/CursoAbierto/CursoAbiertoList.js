@@ -163,7 +163,9 @@ class CursoAbiertoList extends Component {
     updateDatabase = async (result) => {
         const data = result.data.map(item => ({
             ...item,
-            grupo: item.grupo || 'Default Value'  // Ensure 'grupo' is not empty, provide a default if necessary
+            grupo: item.grupo || 'Default Value',  // Ensure 'grupo' is not empty, provide a default if necessary
+            proyecto_code: this.props.proyectoCodeSelected || 'Default Value',  // Ensure 'proyecto_code' is not empty, provide a default if necessary
+
         }));
         const token = Cookies.get("token");
         const headers = { Authorization: `Token ${token}` };
@@ -208,6 +210,7 @@ class CursoAbiertoList extends Component {
 
         const filteredEstudiantes = estudiantes_curso_abierto ? this.filterEstudiantes(estudiantes_curso_abierto) : [];
         const sortedEstudiantes = filteredEstudiantes.slice().sort((a, b) => a.nombre.localeCompare(b.nombre));
+        console.log('sortedEstudiantes',sortedEstudiantes);
         const totalPrecioFiltered = this.calculateTotalPrecioFiltered(filteredEstudiantes);
         const totalEstudiantesFiltered = filteredEstudiantes.length;
 
