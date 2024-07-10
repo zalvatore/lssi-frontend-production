@@ -8,7 +8,7 @@ import { Col, Row, Button } from "reactstrap";
 import Cookies from "js-cookie";
 import Papa from 'papaparse';
 import axios from "axios";
-import { API_URL_estudiantes_list } from "../../../constants";
+import { API_URL_partidas_curso_abierto } from "../../../constants";
 
 class CursoAbiertoList extends Component {
     constructor(props) {
@@ -169,7 +169,7 @@ class CursoAbiertoList extends Component {
         const headers = { Authorization: `Token ${token}` };
         try {
             for (const entry of data) {
-                await axios.post(API_URL_estudiantes_list, entry, { headers });
+                await axios.post(API_URL_partidas_curso_abierto, entry, { headers });
                 toast.success("Data has been updated successfully.");
             }
             this.resetState(); // Refresh the data in your application if necessary
