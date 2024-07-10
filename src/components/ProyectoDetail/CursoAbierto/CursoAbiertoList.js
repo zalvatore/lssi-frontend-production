@@ -161,25 +161,34 @@ class CursoAbiertoList extends Component {
     
     
     updateDatabase = async (result) => {
-      const data = result.data.map(item => ({
-          ...item,
-          grupo: item.grupo || 'Default Value'  // Ensure 'grupo' is not empty, provide a default if necessary
-      }));
-      const token = Cookies.get("token");
-      const headers = { Authorization: `Token ${token}` };
-      try {
-          for (const entry of data) {
-              await axios.post(API_URL_estudiantes_list, entry, { headers });
-              toast.success("Data has been updated successfully.");
-          }
-          this.resetState(); // Refresh the data in your application if necessary
-      } catch (error) {
-          toast.error("Failed to update database. Please try again.");
-          console.error('Error updating database:', error.response.data.nombre[0]
-        );
+        const data = result.data.map(item => ({
+            ...item,
+            grupo: item.grupo || 'Default Value'  // Ensure 'grupo' is not empty, provide a default if necessary
+        }));
+        const token = Cookies.get("token");
+        const headers = { Authorization: `Token ${token}` };
+        try {
+            for (const entry of data) {
+                await axios.post(API_URL_estudiantes_list, entry, { headers });
+                toast.success("Data has been updated successfully.");
+            }
+            this.resetState(); // Refresh the data in your application if necessary
+        } catch (error) {
+            toast.error("Failed to update database. Please try again.");
+            console.error('Error updating database:', error);
     
-          
-      }
+            // Improved error handling
+            if (error.response && error.response.data) {
+                const errorData = error.response.data;
+                if (errorData.partner && Array.isArray(errorData.partner) && errorData.partner.length > 0) {
+                    console.error('Error details:', errorData.partner[0]);
+                } else {
+                    console.error('Unexpected error response structure:', errorData);
+                }
+            } else {
+                console.error('No response data available in the error object');
+            }
+        }
     };
     
     
