@@ -175,7 +175,7 @@ class CursoAbiertoList extends Component {
           this.resetState(); // Refresh the data in your application if necessary
       } catch (error) {
           toast.error("Failed to update database. Please try again.");
-          console.error('Error updating database:', error.response.data.partner[0]
+          console.error('Error updating database:', error.response.data.nombre[0]
         );
     
           
