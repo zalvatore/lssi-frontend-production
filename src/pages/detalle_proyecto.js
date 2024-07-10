@@ -247,8 +247,8 @@ class DetalleProyectos extends Component {
             (estudiante) => estudiante.proyecto_code === selectedProyecto.proyecto_code
           );
           this.setState({ estudiantes_curso_abierto: filteredEstudiantes });
-          console("Estudiantes Curso Abierto:", filteredEstudiantes);
-          console("res.data", res.data);
+          console.log("Estudiantes Curso Abierto:", filteredEstudiantes);
+          console.log("res.data", res.data);
         })
 
   }
