@@ -1,4 +1,5 @@
-const BASE_URL = "https://app-lssi-backend-c5a053ec63da.herokuapp.com";
+//const BASE_URL = "https://app-lssi-backend-c5a053ec63da.herokuapp.com";
+const BASE_URL = "https://lssi-backend-82b2d4696f39.herokuapp.com"
 
 export const API_URL = `${BASE_URL}/api/clients/`;
 export const API_URL_partners = `${BASE_URL}/api/partners/`;
