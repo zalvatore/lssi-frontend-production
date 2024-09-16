@@ -23,12 +23,12 @@ const useFetchProjectData = (projectNumber) => {
           utilidadAbiertaResponse,
           comisionMultiResponse,
         ] = await Promise.all([
-          fetch(`https://app-lssi-backend-c5a053ec63da.herokuapp.com/api/instructores_list/?proyecto_code=${projectNumber}`),
-          fetch(`https://app-lssi-backend-c5a053ec63da.herokuapp.com/api/estudiantes_list/?proyecto_code=${projectNumber}`),
-          fetch(`https://app-lssi-backend-c5a053ec63da.herokuapp.com/api/partidas_list/?proyecto_code=${projectNumber}`),
-          fetch(`https://app-lssi-backend-c5a053ec63da.herokuapp.com/api/proyecto_list/?proyecto_code=${projectNumber}`),
-          fetch(`https://app-lssi-backend-c5a053ec63da.herokuapp.com/api/utilidad-partner-curso-abierto/filter/?proyecto_code=${projectNumber}`),
-          fetch(`https://app-lssi-backend-c5a053ec63da.herokuapp.com/api/comision_multi_list/?proyecto_code=${projectNumber}`),
+          fetch(`https://lssi-backend-82b2d4696f39.herokuapp.com/api/instructores_list/?proyecto_code=${projectNumber}`),
+          fetch(`https://lssi-backend-82b2d4696f39.herokuapp.com/api/estudiantes_list/?proyecto_code=${projectNumber}`),
+          fetch(`https://lssi-backend-82b2d4696f39.herokuapp.com/api/partidas_list/?proyecto_code=${projectNumber}`),
+          fetch(`https://lssi-backend-82b2d4696f39.herokuapp.com/api/proyecto_list/?proyecto_code=${projectNumber}`),
+          fetch(`https://lssi-backend-82b2d4696f39.herokuapp.com/api/utilidad-partner-curso-abierto/filter/?proyecto_code=${projectNumber}`),
+          fetch(`https://lssi-backend-82b2d4696f39.herokuapp.com/api/comision_multi_list/?proyecto_code=${projectNumber}`),
         ]);
 
         const [
